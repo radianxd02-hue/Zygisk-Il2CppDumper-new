@@ -1,45 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zygisk - Il2CppDumper WebUI</title>
+    <title>Il2CppDumper by AntiGravity Exss</title>
     <style>
         :root {
-            --primary: #007bff;
-            --primary-hover: #0056b3;
-            --bg: #f8f9fa;
-            --surface: #ffffff;
-            --text: #212529;
-            --text-muted: #6c757d;
-            --border: #ced4da;
-            --radius: 8px;
+            --gold: #d4af37;
+            --gold-light: #e6c860;
+            --gold-dark: #b8942a;
+            --bg-dark: #1a1a1a;
+            --bg-medium: #242424;
+            --surface: #2d2d2d;
+            --surface-light: #363636;
+            --text: #e8e8e8;
+            --text-muted: #9a9a9a;
+            --border: #3a3a3a;
+            --radius: 12px;
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --primary: #0d6efd;
-                --primary-hover: #0b5ed7;
-                --bg: #212529;
-                --surface: #343a40;
-                --text: #f8f9fa;
-                --text-muted: #adb5bd;
-                --border: #495057;
-            }
+        * {
+            box-sizing: border-box;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
+            background: var(--bg-dark);
             color: var(--text);
-            /* Keep content clear of the system bars when edge-to-edge is on.
-               env() resolves to 0 on hosts that don't expose insets. */
             padding: max(20px, env(safe-area-inset-top))
                      max(20px, env(safe-area-inset-right))
                      max(20px, env(safe-area-inset-bottom))
                      max(20px, env(safe-area-inset-left));
             margin: 0;
-            box-sizing: border-box;
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
@@ -50,18 +42,50 @@
         .card {
             background: var(--surface);
             border-radius: var(--radius);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            padding: 28px 24px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             border: 1px solid var(--border);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-line {
+            height: 3px;
+            width: 60px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 2px;
+            margin: 0 auto 20px;
         }
 
         h2 {
-            margin-top: 0;
+            margin: 0 0 6px;
             font-size: 22px;
-            margin-bottom: 20px;
             text-align: center;
+            color: var(--gold-light);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .credit {
+            text-align: center;
+            font-size: 12px;
+            color: var(--gold);
+            font-style: italic;
+            margin-bottom: 24px;
+            letter-spacing: 0.3px;
         }
 
         .form-group {
@@ -71,25 +95,32 @@
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
         }
 
         input[type="text"], select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 13px 16px;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            background: var(--bg);
+            border-radius: 10px;
+            background: var(--bg-medium);
             color: var(--text);
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
+            font-size: 15px;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: #5a5a5a;
         }
 
         input[type="text"]:focus, select:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
         }
 
         [hidden] {
@@ -98,68 +129,105 @@
 
         button {
             width: 100%;
-            background-color: var(--primary);
-            color: white;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #1a1a1a;
             border: none;
-            padding: 12px;
-            font-size: 16px;
-            border-radius: var(--radius);
+            padding: 14px;
+            font-size: 15px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
+        button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
         }
 
         button:disabled {
-            background-color: var(--text-muted);
+            background: #4a4a4a;
+            color: #8a8a8a;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .status-box {
             margin-top: 24px;
-            padding: 12px;
-            background: var(--bg);
-            border-radius: var(--radius);
+            padding: 16px;
+            background: var(--bg-medium);
+            border-radius: 10px;
             border: 1px solid var(--border);
+            border-left: 3px solid var(--gold);
             font-size: 14px;
             word-break: break-all;
         }
 
         .status-title {
-            font-weight: bold;
-            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        #currentPkg {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gold-light);
         }
 
         .info-text {
             margin-top: 16px;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             text-align: center;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer span {
+            color: var(--gold);
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Il2CppDumper Config</h2>
+    <div class="header-line"></div>
+    <h2>Il2CppDumper</h2>
+    <div class="subtitle">Runtime IL2CPP Metadata Dumper</div>
+    <div class="credit">by AntiGravity Exss</div>
 
     <div class="form-group">
-        <label for="pkgInput">Target Package Name:</label>
-        <input type="text" id="pkgInput" placeholder="com.example.game">
+        <label for="pkgInput">Target Package Name</label>
+        <input type="text" id="pkgInput" placeholder="com.example.game" autocomplete="off" spellcheck="false">
     </div>
 
-    <button id="saveBtn">Save</button>
+    <button id="saveBtn">Save Configuration</button>
 
     <div class="status-box">
-        <div class="status-title">Current Target:</div>
+        <div class="status-title">Current Target</div>
         <div id="currentPkg">Loading...</div>
     </div>
 
     <div class="info-text">
         Note: You must restart the target game for the dumper to inject and take effect.
+    </div>
+
+    <div class="footer">
+        Powered by <span>AntiGravity Exss</span>
     </div>
 </div>
 
@@ -171,29 +239,22 @@
         const saveBtn = document.getElementById('saveBtn');
         const currentPkgDisplay = document.getElementById('currentPkg');
 
-        // Bail out early with a clear message if no root WebUI bridge is present.
         if (!isKsuWebui()) {
             currentPkgDisplay.textContent = 'Root WebUI bridge not available';
             pkgInput.disabled = true;
             saveBtn.disabled = true;
-            toast('Open this WebUI from your root manager (Magisk WebUI-X / KernelSU / APatch).');
+            toast('Open this WebUI from your root manager.');
             return;
         }
 
-        // Best-effort full-bleed layout; unsupported hosts stay padded (see CSS).
         enableEdgeToEdge(true).catch(() => {});
 
-        // Fetch current package on load
         async function loadCurrentPackage() {
             try {
                 const { errno, stdout, stderr } = await exec('getprop persist.il2cppdumper.package');
                 if (errno === 0) {
                     const currentPkg = stdout.trim();
-                    if (currentPkg) {
-                        currentPkgDisplay.textContent = currentPkg;
-                    } else {
-                        currentPkgDisplay.textContent = '(None set)';
-                    }
+                    currentPkgDisplay.textContent = currentPkg || '(None set)';
                 } else {
                     currentPkgDisplay.textContent = 'Error reading property';
                     console.error('getprop error:', stderr);
@@ -201,16 +262,12 @@
             } catch (err) {
                 currentPkgDisplay.textContent = 'Error: API not available';
                 console.error(err);
-                toast('Failed to load current package. Are you in KernelSU/APatch?');
             }
         }
 
-        // Save new package
         saveBtn.addEventListener('click', async () => {
             const newPkg = pkgInput.value.trim();
 
-            // Validate before passing to a root shell: only allow valid
-            // Android package characters so nothing can be injected into setprop.
             if (!/^[a-zA-Z0-9._]+$/.test(newPkg)) {
                 toast('Invalid package name');
                 return;
@@ -234,10 +291,9 @@
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
+            saveBtn.textContent = 'Save Configuration';
         });
 
-        // Initialize
         await loadCurrentPackage();
     });
 </script>
