@@ -123,6 +123,16 @@
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
         }
 
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 40px;
+        }
+
         [hidden] {
             display: none !important;
         }
@@ -200,6 +210,30 @@
             color: var(--gold);
             font-weight: 700;
         }
+
+        .loader {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--gold);
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .scan-status {
+            font-size: 12px;
+            color: var(--gold-light);
+            text-align: center;
+            margin-top: 8px;
+            min-height: 16px;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +243,14 @@
     <h2>Il2CppDumper</h2>
     <div class="subtitle">Runtime IL2CPP Metadata Dumper</div>
     <div class="credit">by AntiGravity Exss</div>
+
+    <div class="form-group">
+        <label for="appSelect">Unity Games Terdeteksi</label>
+        <select id="appSelect">
+            <option value="">-- Scanning game Unity... --</option>
+        </select>
+        <div class="scan-status" id="scanStatus"></div>
+    </div>
 
     <div class="form-group">
         <label for="pkgInput">Target Package Name</label>
@@ -235,19 +277,96 @@
     import { exec, toast, isKsuWebui, enableEdgeToEdge } from './kernelsu-alt.mjs';
 
     document.addEventListener('DOMContentLoaded', async () => {
+        const appSelect = document.getElementById('appSelect');
         const pkgInput = document.getElementById('pkgInput');
         const saveBtn = document.getElementById('saveBtn');
         const currentPkgDisplay = document.getElementById('currentPkg');
+        const scanStatus = document.getElementById('scanStatus');
 
         if (!isKsuWebui()) {
             currentPkgDisplay.textContent = 'Root WebUI bridge not available';
             pkgInput.disabled = true;
             saveBtn.disabled = true;
+            appSelect.disabled = true;
             toast('Open this WebUI from your root manager.');
             return;
         }
 
         enableEdgeToEdge(true).catch(() => {});
+
+        // Cek apakah package punya library Unity
+        async function isUnityPackage(pkg) {
+            try {
+                // Cek file libil2cpp.so, liblogic.so, libcsharp.so, atau libunity.so
+                const { errno, stdout } = await exec(
+                    `ls /data/data/${pkg}/app_libs/ 2>/dev/null | grep -E "lib(il2cpp|logic|csharp|unity)\\.so" | head -1`
+                );
+                if (errno === 0 && stdout.trim().length > 0) {
+                    return true;
+                }
+                return false;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // Muat daftar aplikasi Unity
+        async function loadUnityApps() {
+            try {
+                const { errno, stdout, stderr } = await exec('pm list packages -3');
+                if (errno !== 0) {
+                    appSelect.innerHTML = '<option value="">Gagal membaca daftar aplikasi</option>';
+                    return;
+                }
+
+                const allPackages = stdout
+                    .split('\n')
+                    .map(line => line.replace('package:', '').trim())
+                    .filter(pkg => pkg.length > 0)
+                    .sort();
+
+                scanStatus.innerHTML = '<span class="loader"></span>Scanning ' + allPackages.length + ' aplikasi...';
+                appSelect.innerHTML = '<option value="">-- Scanning... --</option>';
+
+                const unityApps = [];
+                let checked = 0;
+
+                for (const pkg of allPackages) {
+                    const isUnity = await isUnityPackage(pkg);
+                    if (isUnity) {
+                        unityApps.push(pkg);
+                    }
+                    checked++;
+                    if (checked % 5 === 0) {
+                        scanStatus.innerHTML = '<span class="loader"></span>Scanning ' + checked + '/' + allPackages.length + '...';
+                    }
+                }
+
+                appSelect.innerHTML = '<option value="">-- Pilih Game Unity --</option>';
+                if (unityApps.length === 0) {
+                    appSelect.innerHTML = '<option value="">Tidak ada game Unity terdeteksi</option>';
+                    scanStatus.textContent = 'Scan selesai. Tidak ada game Unity.';
+                } else {
+                    unityApps.forEach(pkg => {
+                        const opt = document.createElement('option');
+                        opt.value = pkg;
+                        opt.textContent = pkg;
+                        appSelect.appendChild(opt);
+                    });
+                    scanStatus.textContent = 'Ditemukan ' + unityApps.length + ' game Unity.';
+                }
+            } catch (err) {
+                appSelect.innerHTML = '<option value="">Error: API tidak tersedia</option>';
+                scanStatus.textContent = 'Error: ' + err.message;
+                console.error(err);
+            }
+        }
+
+        appSelect.addEventListener('change', () => {
+            if (appSelect.value) {
+                pkgInput.value = appSelect.value;
+            }
+        });
 
         async function loadCurrentPackage() {
             try {
@@ -255,13 +374,14 @@
                 if (errno === 0) {
                     const currentPkg = stdout.trim();
                     currentPkgDisplay.textContent = currentPkg || '(None set)';
+                    if (currentPkg) {
+                        pkgInput.value = currentPkg;
+                    }
                 } else {
                     currentPkgDisplay.textContent = 'Error reading property';
-                    console.error('getprop error:', stderr);
                 }
             } catch (err) {
                 currentPkgDisplay.textContent = 'Error: API not available';
-                console.error(err);
             }
         }
 
@@ -283,18 +403,16 @@
                     toast(`Package set to ${newPkg}`);
                 } else {
                     toast('Failed to save config!');
-                    console.error('setprop error:', stderr);
                 }
             } catch (err) {
                 toast('Error: API not available');
-                console.error(err);
             }
 
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save Configuration';
         });
 
-        await loadCurrentPackage();
+        await Promise.all([loadUnityApps(), loadCurrentPackage()]);
     });
 </script>
 
