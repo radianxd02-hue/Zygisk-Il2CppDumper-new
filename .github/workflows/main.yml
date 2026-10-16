@@ -28,11 +28,23 @@ jobs:
           mv cmdline-tools latest
           rm cmdline-tools.zip
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;28.2.13676358" > /dev/null
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      # Install CMake 4.1.2 manual
+      - name: Install CMake 4.1.2
+        run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          mkdir -p $ANDROID_HOME/cmake
+          cd $ANDROID_HOME/cmake
+          wget -q https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz -O cmake.tar.gz
+          tar -xzf cmake.tar.gz
+          mv cmake-4.1.2-linux-x86_64 4.1.2
+          rm cmake.tar.gz
+          echo "$ANDROID_HOME/cmake/4.1.2/bin" >> $GITHUB_PATH
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
