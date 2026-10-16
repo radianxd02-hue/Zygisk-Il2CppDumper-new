@@ -19,9 +19,7 @@
             --radius: 12px;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -88,9 +86,7 @@
             letter-spacing: 0.3px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
 
         label {
             display: block;
@@ -113,9 +109,7 @@
             transition: all 0.25s ease;
         }
 
-        input[type="text"]::placeholder {
-            color: #5a5a5a;
-        }
+        input[type="text"]::placeholder { color: #5a5a5a; }
 
         input[type="text"]:focus, select:focus {
             outline: none;
@@ -133,9 +127,7 @@
             padding-right: 40px;
         }
 
-        [hidden] {
-            display: none !important;
-        }
+        [hidden] { display: none !important; }
 
         button {
             width: 100%;
@@ -206,10 +198,7 @@
             color: var(--text-muted);
         }
 
-        .footer span {
-            color: var(--gold);
-            font-weight: 700;
-        }
+        .footer span { color: var(--gold); font-weight: 700; }
 
         .loader {
             display: inline-block;
@@ -223,9 +212,7 @@
             vertical-align: middle;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .scan-status {
             font-size: 12px;
@@ -294,17 +281,13 @@
 
         enableEdgeToEdge(true).catch(() => {});
 
-        // Cek apakah package punya library Unity
+        // Cek apakah package punya library Unity (termasuk MLBB liblogic & libcsharp)
         async function isUnityPackage(pkg) {
             try {
-                // Cek file libil2cpp.so, liblogic.so, libcsharp.so, atau libunity.so
                 const { errno, stdout } = await exec(
                     `ls /data/data/${pkg}/app_libs/ 2>/dev/null | grep -E "lib(il2cpp|logic|csharp|unity)\\.so" | head -1`
                 );
-                if (errno === 0 && stdout.trim().length > 0) {
-                    return true;
-                }
-                return false;
+                return errno === 0 && stdout.trim().length > 0;
             } catch (err) {
                 return false;
             }
@@ -313,7 +296,7 @@
         // Muat daftar aplikasi Unity
         async function loadUnityApps() {
             try {
-                const { errno, stdout, stderr } = await exec('pm list packages -3');
+                const { errno, stdout } = await exec('pm list packages -3');
                 if (errno !== 0) {
                     appSelect.innerHTML = '<option value="">Gagal membaca daftar aplikasi</option>';
                     return;
@@ -332,8 +315,7 @@
                 let checked = 0;
 
                 for (const pkg of allPackages) {
-                    const isUnity = await isUnityPackage(pkg);
-                    if (isUnity) {
+                    if (await isUnityPackage(pkg)) {
                         unityApps.push(pkg);
                     }
                     checked++;
@@ -370,7 +352,7 @@
 
         async function loadCurrentPackage() {
             try {
-                const { errno, stdout, stderr } = await exec('getprop persist.il2cppdumper.package');
+                const { errno, stdout } = await exec('getprop persist.il2cppdumper.package');
                 if (errno === 0) {
                     const currentPkg = stdout.trim();
                     currentPkgDisplay.textContent = currentPkg || '(None set)';
@@ -388,7 +370,8 @@
         saveBtn.addEventListener('click', async () => {
             const newPkg = pkgInput.value.trim();
 
-            if (!/^[a-zA-Z0-9._]+$/.test(newPkg)) {
+            // Validasi: izinkan huruf, angka, titik, dan ":" (untuk proses seperti :UnityKillsMe)
+            if (!/^[a-zA-Z0-9._:]+$/.test(newPkg)) {
                 toast('Invalid package name');
                 return;
             }
@@ -397,7 +380,7 @@
             saveBtn.textContent = 'Saving...';
 
             try {
-                const { errno, stdout, stderr } = await exec(`setprop persist.il2cppdumper.package ${newPkg}`);
+                const { errno } = await exec(`setprop persist.il2cppdumper.package ${newPkg}`);
                 if (errno === 0) {
                     currentPkgDisplay.textContent = newPkg || '(None set)';
                     toast(`Package set to ${newPkg}`);
