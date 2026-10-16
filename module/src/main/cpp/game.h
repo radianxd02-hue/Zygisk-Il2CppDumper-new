@@ -17,22 +17,14 @@ inline const char *GetGamePackageName() {
     static bool initialized = false;
 
     if (!initialized) {
-        char base_package[256] = {0};
+        __system_property_get("persist.il2cppdumper.package", package_name);
 
-        __system_property_get("persist.il2cppdumper.package", base_package);
-
-        if (base_package[0] == '\0') {
-            __system_property_get("debug.il2cppdumper.package", base_package);
+        if (package_name[0] == '\0') {
+            __system_property_get("debug.il2cppdumper.package", package_name);
         }
 
-        if (base_package[0] == '\0') {
-            snprintf(base_package, sizeof(base_package), "com.example.game");
-        }
-
-        if (strchr(base_package, ':') == nullptr) {
-            snprintf(package_name, sizeof(package_name), "%s:UnityKillsMe", base_package);
-        } else {
-            snprintf(package_name, sizeof(package_name), "%s", base_package);
+        if (package_name[0] == '\0') {
+            snprintf(package_name, sizeof(package_name), "com.example.game");
         }
 
         initialized = true;
