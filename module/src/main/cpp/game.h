@@ -12,6 +12,18 @@
 #include <cctype>
 #include <sys/system_properties.h>
 
+inline bool UsesUnityKillsMe(const char *pkg) {
+    const char *known[] = {
+        "com.mobile.legends",
+        "com.mobile.legends.usa",
+        // tambahkan varian lain yang sudah terbukti di sini
+    };
+    for (const char *k : known) {
+        if (strcmp(pkg, k) == 0) return true;
+    }
+    return false;
+}
+
 inline const char *GetGamePackageName() {
     static char package_name[256] = {0};
     static bool initialized = false;
@@ -29,9 +41,13 @@ inline const char *GetGamePackageName() {
             snprintf(base_package, sizeof(base_package), "com.example.game");
         }
 
-        if (strchr(base_package, ':') == nullptr) {
+        if (strchr(base_package, ':') != nullptr) {
+            snprintf(package_name, sizeof(package_name), "%s", base_package);
+        }
+        else if (UsesUnityKillsMe(base_package)) {
             snprintf(package_name, sizeof(package_name), "%s:UnityKillsMe", base_package);
-        } else {
+        }
+        else {
             snprintf(package_name, sizeof(package_name), "%s", base_package);
         }
 
