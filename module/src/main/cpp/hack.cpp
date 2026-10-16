@@ -1,5 +1,6 @@
 //
 // Created by Perfare on 2020/7/4.
+// Modified by AntiGravity Exss
 //
 
 #include "hack.h"
@@ -18,6 +19,7 @@
 #include <array>
 
 void hack_start(const char *game_data_dir) {
+    LOGI("Il2CppDumper by AntiGravity Exss");
     const char *target_libs[] = {"liblogic.so", "libcsharp.so"};
     bool load = false;
 
