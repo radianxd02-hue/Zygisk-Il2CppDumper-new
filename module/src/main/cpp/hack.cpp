@@ -22,8 +22,8 @@ void hack_start(const char *game_data_dir) {
     LOGI("Il2CppDumper by AntiGravity Exss");
 
     const char *target_libs[] = {
-        "libcsharp.so",
         "liblogic.so",
+        "libcsharp.so",
         "libil2cpp.so"
     };
 
