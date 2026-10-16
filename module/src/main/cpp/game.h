@@ -1,5 +1,5 @@
 //
-// Created by Perfare on 2020/7/4.
+// Modified by AntiGravity Exss
 //
 
 #ifndef ZYGISK_IL2CPPDUMPER_GAME_H
@@ -12,7 +12,34 @@
 #include <cctype>
 #include <sys/system_properties.h>
 
-// Hardcode nama paket proses Unity MLBB
-#define GamePackageName "com.mobile.legends.usa:UnityKillsMe"
+inline const char *GetGamePackageName() {
+    static char package_name[256] = {0};
+    static bool initialized = false;
+
+    if (!initialized) {
+        char base_package[256] = {0};
+
+        __system_property_get("persist.il2cppdumper.package", base_package);
+
+        if (base_package[0] == '\0') {
+            __system_property_get("debug.il2cppdumper.package", base_package);
+        }
+
+        if (base_package[0] == '\0') {
+            snprintf(base_package, sizeof(base_package), "com.example.game");
+        }
+
+        if (strchr(base_package, ':') == nullptr) {
+            snprintf(package_name, sizeof(package_name), "%s:UnityKillsMe", base_package);
+        } else {
+            snprintf(package_name, sizeof(package_name), "%s", base_package);
+        }
+
+        initialized = true;
+    }
+    return package_name;
+}
+
+#define GamePackageName GetGamePackageName()
 
 #endif //ZYGISK_IL2CPPDUMPER_GAME_H
