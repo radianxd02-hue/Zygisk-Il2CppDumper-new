@@ -54,4 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zygisk-il2cppdumper-release
-          path: module/build/outputs/apk/release/*.apk
+          path: |
+            **/*.zip
+            !**/gradle-*.zip
+            !**/cmdline-tools.zip
