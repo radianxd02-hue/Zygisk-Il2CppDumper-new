@@ -18,22 +18,26 @@
 #include <array>
 
 void hack_start(const char *game_data_dir) {
+    const char *target_libs[] = {"liblogic.so", "libcsharp.so"};
     bool load = false;
-    for (int i = 0; i < 10; i++) {
-        // DIUBAH: libil2cpp.so -> libcsharp.so
-        void *handle = xdl_open("libcsharp.so", 0);
-        if (handle) {
-            load = true;
-            il2cpp_api_init(handle);
-            il2cpp_dump(game_data_dir);
-            break;
-        } else {
-            sleep(1);
+
+    for (int attempt = 0; attempt < 20; attempt++) {
+        for (const char *lib_name : target_libs) {
+            void *handle = xdl_open(lib_name, 0);
+            if (handle) {
+                LOGI("%s found, starting dump...", lib_name);
+                load = true;
+                il2cpp_api_init(handle);
+                il2cpp_dump(game_data_dir);
+                break;
+            }
         }
+        if (load) break;
+        sleep(1);
     }
+
     if (!load) {
-        // DIUBAH: pesan log juga disesuaikan
-        LOGI("libcsharp.so not found in thread %d", gettid());
+        LOGI("liblogic.so and libcsharp.so not found in thread %d", gettid());
     }
 }
 
@@ -117,9 +121,6 @@ struct NativeBridgeCallbacks {
     void *(*loadLibraryExt)(const char *libpath, int flag, void *ns);
 };
 
-// Poll (bounded) until a JavaVM exists and ActivityThread.currentApplication() is non-null,
-// signalling the native bridge (houdini) is up. Replaces a fixed sleep. Returns the VM, or
-// nullptr on timeout.
 static JavaVM *WaitForRuntime(void *libart) {
     auto JNI_GetCreatedJavaVMs = (jint (*)(JavaVM **, jsize, jsize *)) dlsym(
             libart, "JNI_GetCreatedJavaVMs");
@@ -128,7 +129,7 @@ static JavaVM *WaitForRuntime(void *libart) {
         LOGE("dlsym JNI_GetCreatedJavaVMs failed");
         return nullptr;
     }
-    for (int i = 0; i < 300; i++) { // up to ~30s at 100ms per iteration
+    for (int i = 0; i < 300; i++) {
         JavaVM *vms_buf[1];
         jsize num_vms = 0;
         if (JNI_GetCreatedJavaVMs(vms_buf, 1, &num_vms) == JNI_OK && num_vms > 0) {
