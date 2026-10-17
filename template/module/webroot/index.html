@@ -281,12 +281,12 @@
 
         enableEdgeToEdge(true).catch(() => {});
 
-        // Cek apakah package punya library Unity (termasuk MLBB liblogic & libcsharp)
+        // Cek apakah package punya library Unity
+        // Mencakup: app_libs (MLBB), lib (standar), dan split APK (com.android.vending)
         async function isUnityPackage(pkg) {
             try {
-                const { errno, stdout } = await exec(
-                    `ls /data/data/${pkg}/app_libs/ 2>/dev/null | grep -E "lib(il2cpp|logic|csharp|unity)\\.so" | head -1`
-                );
+                const cmd = `ls /data/data/${pkg}/app_libs/ /data/data/${pkg}/lib/ /data/app/*/${pkg}/lib/arm64/ 2>/dev/null | grep -E "lib(il2cpp|logic|csharp|unity|unitymain)\\.so" | head -1`;
+                const { errno, stdout } = await exec(cmd);
                 return errno === 0 && stdout.trim().length > 0;
             } catch (err) {
                 return false;
@@ -370,7 +370,6 @@
         saveBtn.addEventListener('click', async () => {
             const newPkg = pkgInput.value.trim();
 
-            // Validasi: izinkan huruf, angka, titik, dan ":" (untuk proses seperti :UnityKillsMe)
             if (!/^[a-zA-Z0-9._:]+$/.test(newPkg)) {
                 toast('Invalid package name');
                 return;
