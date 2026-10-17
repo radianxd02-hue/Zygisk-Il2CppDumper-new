@@ -18,8 +18,8 @@
             --border: #3a3a3a;
             --radius: 12px;
             
-            --danger-bg: rgba(220, 53, 69, 0.1);
-            --danger-border: rgba(220, 53, 69, 0.3);
+            --danger-bg: rgba(220, 53, 69, 0.08);
+            --danger-border: rgba(220, 53, 69, 0.2);
             --danger-text: #ff8a95;
         }
 
@@ -46,14 +46,14 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .card {
             background: var(--surface);
             border-radius: var(--radius);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            padding: 28px 24px;
+            padding: 24px;
             width: 100%;
             border: 1px solid var(--border);
             animation: fadeIn 0.4s ease;
@@ -62,48 +62,36 @@
         .warning-card {
             background: var(--danger-bg);
             border: 1px solid var(--danger-border);
-            padding: 20px 24px;
+            padding: 16px 20px;
             animation: fadeIn 0.6s ease;
         }
 
         .warning-title {
             color: var(--danger-text);
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 700;
             margin-top: 0;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .warning-list {
-            margin: 0;
-            padding-left: 18px;
+        .warning-text {
             color: var(--text-muted);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .warning-list li {
-            margin-bottom: 8px;
-        }
-        
-        .warning-list li::marker {
-            color: var(--danger-text);
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0 0 8px 0;
         }
 
         .warning-footer {
-            margin-top: 16px;
-            padding-top: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
             border-top: 1px dashed var(--danger-border);
-            font-size: 12px;
+            font-size: 11px;
             color: var(--danger-text);
             font-weight: 600;
             text-align: center;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         @keyframes fadeIn {
@@ -321,16 +309,12 @@
         </div>
     </div>
 
-    <!-- CARD PERINGATAN & EDUKASI -->
+    <!-- CARD PERINGATAN (SIMPEL) -->
     <div class="card warning-card">
-        <h3 class="warning-title">⚠️ Peringatan & Pembelajaran</h3>
-        <ul class="warning-list">
-            <li>Modul ini dibuat <b>hanya untuk tujuan edukasi</b>, riset keamanan, dan pembelajaran struktur engine Unity (IL2CPP).</li>
-            <li>Segala bentuk penggunaan untuk meretas, mengeksploitasi, atau memodifikasi game secara ilegal adalah <b>tanggung jawab pengguna sepenuhnya</b>.</li>
-            <li>Jika Anda menggunakan modul ini untuk keperluan modifikasi, sangat disarankan untuk menggunakan <b>akun cadangan (dummy)</b> dan bukan akun utama Anda.</li>
-        </ul>
+        <h3 class="warning-title">Peringatan & Edukasi</h3>
+        <p class="warning-text">Modul ini dibuat khusus untuk tujuan edukasi, pembelajaran struktur engine Unity, dan riset keamanan. Segala bentuk penyalahgunaan di luar tujuan tersebut adalah tanggung jawab pengguna sepenuhnya.</p>
         <div class="warning-footer">
-            AntiGravity Exss tidak bertanggung jawab atas segala bentuk kerusakan perangkat, kehilangan data, atau pemblokiran akun yang disebabkan oleh penyalahgunaan tool ini.
+            AntiGravity Exss tidak bertanggung jawab perihal apapun!
         </div>
     </div>
 
@@ -359,11 +343,13 @@
 
         // FUNGSI SCANNER PINTAR: Mendeteksi Game Unity (Termasuk Split APK & MLBB)
         async function isUnityPackage(pkg) {
+            // Abaikan aplikasi sistem, Termux, Google, dll.
             if (pkg === 'com.termux' || pkg.startsWith('com.android') || pkg.startsWith('com.google') || pkg.startsWith('com.samsung') || pkg.startsWith('com.sec.')) {
                 return false;
             }
 
             try {
+                // Pencarian mencakup folder app_libs (MLBB), lib (standar), dan folder Split APK
                 const cmd = `
                     PKG_PATH=$(pm path ${pkg} | head -1 | sed 's/package://;s/\\/base.apk//')
                     if [ -n "$PKG_PATH" ] && [ -d "$PKG_PATH/lib" ]; then
