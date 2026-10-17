@@ -80,18 +80,7 @@
             color: var(--text-muted);
             font-size: 12px;
             line-height: 1.5;
-            margin: 0 0 8px 0;
-        }
-
-        .warning-footer {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--danger-border);
-            font-size: 11px;
-            color: var(--danger-text);
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.4;
+            margin: 0;
         }
 
         @keyframes fadeIn {
@@ -309,13 +298,10 @@
         </div>
     </div>
 
-    <!-- CARD PERINGATAN (SIMPEL) -->
+    <!-- CARD PERINGATAN (TANPA FOOTER) -->
     <div class="card warning-card">
         <h3 class="warning-title">Peringatan & Edukasi</h3>
         <p class="warning-text">Modul ini dibuat khusus untuk tujuan edukasi, pembelajaran struktur engine Unity, dan riset keamanan. Segala bentuk penyalahgunaan di luar tujuan tersebut adalah tanggung jawab pengguna sepenuhnya.</p>
-        <div class="warning-footer">
-            AntiGravity Exss tidak bertanggung jawab perihal apapun!
-        </div>
     </div>
 
 </div>
@@ -341,27 +327,28 @@
 
         enableEdgeToEdge(true).catch(() => {});
 
-        // FUNGSI SCANNER PINTAR: Mendeteksi Game Unity (Termasuk Split APK & MLBB)
+        // FUNGSI SCANNER YANG SUDAH DIPERBAIKI (STABIL UNTUK MLBB & SPLIT APK)
         async function isUnityPackage(pkg) {
-            // Abaikan aplikasi sistem, Termux, Google, dll.
             if (pkg === 'com.termux' || pkg.startsWith('com.android') || pkg.startsWith('com.google') || pkg.startsWith('com.samsung') || pkg.startsWith('com.sec.')) {
                 return false;
             }
 
             try {
-                // Pencarian mencakup folder app_libs (MLBB), lib (standar), dan folder Split APK
-                const cmd = `
-                    PKG_PATH=$(pm path ${pkg} | head -1 | sed 's/package://;s/\\/base.apk//')
-                    if [ -n "$PKG_PATH" ] && [ -d "$PKG_PATH/lib" ]; then
-                        ls "$PKG_PATH/lib/" 2>/dev/null | grep -qE "lib(il2cpp|unity|unitymain)\\.so" && echo "found" && exit 0
-                    fi
-                    ls /data/data/${pkg}/app_libs/ 2>/dev/null | grep -qE "lib(il2cpp|logic|csharp|unity|unitymain)\\.so" && echo "found" && exit 0
-                    ls /data/data/${pkg}/lib/ 2>/dev/null | grep -qE "lib(il2cpp|unity|unitymain)\\.so" && echo "found" && exit 0
-                    exit 1
-                `;
-                
-                const { errno, stdout } = await exec(cmd);
-                return errno === 0 && stdout.trim() === "found";
+                // Cek 1: Folder standar (app_libs dan lib)
+                const cmd1 = `ls /data/data/${pkg}/app_libs/ /data/data/${pkg}/lib/ 2>/dev/null | grep -E "lib(il2cpp|logic|csharp|unity|unitymain)\\.so" | head -1`;
+                const res1 = await exec(cmd1);
+                if (res1.errno === 0 && res1.stdout.trim().length > 0) {
+                    return true;
+                }
+
+                // Cek 2: Split APK (Subway Surfers, dll) menggunakan find
+                const cmd2 = `find /data/app/ -maxdepth 5 -name "libil2cpp.so" -path "*${pkg}*" 2>/dev/null | head -1`;
+                const res2 = await exec(cmd2);
+                if (res2.errno === 0 && res2.stdout.trim().length > 0) {
+                    return true;
+                }
+
+                return false;
             } catch (err) {
                 return false;
             }
