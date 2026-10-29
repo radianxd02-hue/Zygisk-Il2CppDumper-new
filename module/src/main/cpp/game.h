@@ -16,6 +16,7 @@ inline bool UsesUnityKillsMe(const char *pkg) {
     const char *known[] = {
         "com.mobile.legends",
         "com.mobile.legends.usa",
+        "com.fyrefly.f21",
         // tambahkan varian lain yang sudah terbukti di sini
     };
     for (const char *k : known) {
